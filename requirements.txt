@@ -1,0 +1,5 @@
+flask 
+pinecone
+openai==0.28.0
+python-dotenv
+gunicorn
