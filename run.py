@@ -101,7 +101,8 @@ def get_gpt_response(user_query, context, matches):
             max_tokens=900,
             top_p=0.9,
             frequency_penalty=0,
-            presence_penalty=0
+            presence_penalty=0,
+            timeout=90
         )
 
         return response['choices'][0]['message']['content'].strip()
