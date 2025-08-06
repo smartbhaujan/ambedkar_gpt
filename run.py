@@ -34,6 +34,7 @@ pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(index_name)
 EMBED_DIM = 1536
 
+vectorizer: TfidfVectorizer = joblib.load("tfidf_vectorizer.pkl")
 
 # Function to get a response from GPT-4
 def get_gpt_response(user_query, context, matches):
@@ -123,7 +124,6 @@ def get_relevant_context(user_query, top_k=5, score_threshold=0.35):
         )['data'][0]['embedding']
 
         # Sparse vector from TF-IDF vocabulary
-        vectorizer: TfidfVectorizer = joblib.load("tfidf_vectorizer.pkl")
 
         query_vec = vectorizer.transform([user_query])
         sparse = {
