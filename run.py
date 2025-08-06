@@ -93,7 +93,7 @@ def get_gpt_response(user_query, context, matches):
 # Answer with references to page and chapter."""
 
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-16k",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -230,7 +230,7 @@ def handle_query():
             session["greeted"] = True
 
         response_text = get_gpt_response(user_query, context, matches)
-        print(response_text)
+        # print(response_text)
 
         # messages.append({"role": "assistant", "text": response_text})
 
