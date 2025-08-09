@@ -233,20 +233,20 @@ def handle_query():
         # print(response_text)
 
         # messages.append({"role": "assistant", "text": response_text})
-        return response_text
+        # return response_text
 
-        # return jsonify({
-        #     "response": response_text,
-        #     # "references": [
-        #     #     {
-        #     #         "page": m['metadata'].get('page', 'N/A'),
-        #     #         "chapter": m['metadata'].get('chapter', 'N/A'),
-        #     #         "score": m['score'],
-        #     #         "text": m['metadata'].get('text', '')[:300],
-        #     #         "source":m['metadata'].get("source","N/A")
-        #     #     } for m in matches
-        #     # ]
-        # })
+        return jsonify({
+            "response": response_text,
+            # "references": [
+            #     {
+            #         "page": m['metadata'].get('page', 'N/A'),
+            #         "chapter": m['metadata'].get('chapter', 'N/A'),
+            #         "score": m['score'],
+            #         "text": m['metadata'].get('text', '')[:300],
+            #         "source":m['metadata'].get("source","N/A")
+            #     } for m in matches
+            # ]
+        })
 
     except Exception as e:
         print(f"❌ Error handling query: {e}")
