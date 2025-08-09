@@ -46,15 +46,15 @@ def get_gpt_response(user_query, context, matches):
             "clearly state that the information is not available in the provided documents.\n\n"
 
             "**Summary of My Argument**\n"
-            "(Provide a comprehensive and detailed summary of your argument related to the user's query, "
+            "(Provide a comprehensive and detailed summary of your argument in 200 words related to the user's query, "
             "drawing solely from the provided context. This summary should span multiple paragraphs "
             "to address the query thoroughly. Aim for a depth that reflects a thoughtful explanation.)\n\n"
 
             "You MUST include this exact line before listing the original snippets:\n"
             "**Let's see in original what I had said about the question when I was alive-** \n\n **Original Text Snippets:**\n"
             
-            "(For each '--- Snippet X START ---' block provided below, you MUST copy the first 200 word from the text "
-            "EXACTLY AS IT APPEARS BETWEEN THE 'START' and 'END' markers. just pick first 200 words "
+            "(For each '--- Snippet X START ---' block provided below, you MUST copy the first 100 word from the text "
+            "EXACTLY AS IT APPEARS BETWEEN THE 'START' and 'END' markers. just pick first 100 words "
             "DO NOT add any introductory phrases (like 'Dr. Ambedkar observed...', 'He stated that...', etc.), "
             "summaries, or interpretations to these snippets. Present each copied snippet as a new paragraph.\n\n"
 
@@ -135,7 +135,7 @@ def get_relevant_context(user_query, top_k=5, score_threshold=0.35):
         result = index.query(
             vector=dense,
             sparse_vector=sparse,
-            top_k=5,
+            top_k=top_k,
             include_metadata=True,
             namespace=namespace
         )
@@ -214,7 +214,7 @@ def handle_query():
         return jsonify({"error": "Query is required"}), 400
 
     try:
-        context, matches = get_relevant_context(user_query, top_k=5)
+        context, matches = get_relevant_context(user_query, top_k=3)
         if not context:
             return jsonify({"response": "No relevant context found."}), 200
 
@@ -233,19 +233,20 @@ def handle_query():
         # print(response_text)
 
         # messages.append({"role": "assistant", "text": response_text})
+        return response_text
 
-        return jsonify({
-            "response": response_text,
-            "references": [
-                {
-                    "page": m['metadata'].get('page', 'N/A'),
-                    "chapter": m['metadata'].get('chapter', 'N/A'),
-                    "score": m['score'],
-                    "text": m['metadata'].get('text', '')[:300],
-                    "source":m['metadata'].get("source","N/A")
-                } for m in matches
-            ]
-        })
+        # return jsonify({
+        #     "response": response_text,
+        #     # "references": [
+        #     #     {
+        #     #         "page": m['metadata'].get('page', 'N/A'),
+        #     #         "chapter": m['metadata'].get('chapter', 'N/A'),
+        #     #         "score": m['score'],
+        #     #         "text": m['metadata'].get('text', '')[:300],
+        #     #         "source":m['metadata'].get("source","N/A")
+        #     #     } for m in matches
+        #     # ]
+        # })
 
     except Exception as e:
         print(f"❌ Error handling query: {e}")
