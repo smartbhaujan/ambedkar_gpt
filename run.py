@@ -44,30 +44,31 @@ def get_gpt_response(user_query, context, matches):
             "You are Dr. B.R. Ambedkar, reborn as an AI, responding directly to a citizen of 2025. "
             "Your task is to answer the user's query STRICTLY based on the provided text snippets from your writings. "
             "Do not use any external knowledge. If the text does not contain the answer, "
-            "clearly state that the information is not available in the provided documents.  \n\n"
+            "clearly state that the information is not available in the provided documents.\n\n"
 
-            "**Summary of My Argument**  \n\n"
-            "(Provide a comprehensive and detailed summary of your argument in 140 words related to the user's query, "
-            "drawing solely from the provided context. This summary should span multiple paragraphs "
-            "to address the query thoroughly. Aim for a depth that reflects a thoughtful explanation.)  \n\n"
+            "## Your Response MUST follow this structure strictly:\n\n"
 
-            "You MUST include this exact line before listing the original snippets:  \n\n"
-            "**Let's see in original what I had said about the question when I was alive-**   \n\n **Original Text Snippets:**\n\n"
+            "1. **Summary of My Argument**\n"
+            "   - Write exactly 140 words (not less, not more).\n"
+            "   - The summary must span multiple paragraphs.\n"
+            "   - Only use the provided context, no outside knowledge.\n\n"
 
-            "(For each '--- Snippet X START ---' block provided below, you MUST copy the first 80 word from the text "
-            "EXACTLY AS IT APPEARS BETWEEN THE 'START' and 'END' markers. just pick first 80 words "
-            "DO NOT add any introductory phrases (like 'Dr. Ambedkar observed...', 'He stated that...', etc.), "
-            "summaries, or interpretations to these snippets. Present each copied snippet as a new paragraph.  \n\n"
+            "2. Print this exact line next:\n"
+            "**Let's see in original what I had said about the question when I was alive-**\n\n"
+            "**Original Text Snippets:**\n\n"
 
-            "Immediately after each copied snippet, you MUST copy the line that begins with 'Source:' "
-            "which is included directly after the snippet in the context. "
-            "This line is part of the original context and must be copied EXACTLY as it appears — no rephrasing or summarizing.)\n\n"
+            "3. For each provided snippet:\n"
+            "   - Copy EXACTLY the first 80 words from between the START and END markers.\n"
+            "   - Do not paraphrase, summarize, or add any introduction.\n"
+            "   - After the copied text, copy the 'Source:' line EXACTLY as it appears.\n"
+            "   - Ensure that every snippet has BOTH the copied text and its Source line.\n"
+            "   - Do not merge snippets. Each snippet must start on a new paragraph and snippet numbers.\n\n"
 
-            "Example format for each snippet representation:  \n\n"
-            "This is the exact text of the snippet as found in the original source, copied precisely.  \n\n"
-            "**Source**: Dr. B.R. Ambedkar, Collected Works of Dr. B.R. Ambedkar, Government of Maharashtra, Mumbai — Annihilation of Caste (Vol. 1, Page 12)  \n\n"
+            "⚠️ IMPORTANT:\n"
+            "- Do not include more or fewer than 80 words from any snippet.\n"
+            "- Do not cut the Source line.\n"
+            "- Do not add anything else beyond the specified format.\n"
         )
-
         citation_list = ""
         for i, match in enumerate(matches, 1):
             page = match['metadata'].get('page', 'Unknown')
@@ -93,15 +94,14 @@ def get_gpt_response(user_query, context, matches):
         # Answer with references to page and chapter."""
 
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
+            model="gpt-4o-2024-05-13",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.3,
-            max_tokens=1500,
-            top_p=0.9,
-            frequency_penalty=0,
+            # temperature=0.3,
+            # top_p=0.9,
+            # frequency_penalty=0,
             presence_penalty=0,
             timeout=90
         )
@@ -114,7 +114,7 @@ def get_gpt_response(user_query, context, matches):
 
 
 # Function to get relevant context from Pinecone
-def get_relevant_context(user_query, top_k=5, score_threshold=0.35):
+def get_relevant_context(user_query, top_k=3, score_threshold=0.35):
     try:
         # Dense embedding
         dense = openai.Embedding.create(
@@ -215,6 +215,7 @@ def handle_query():
 
     try:
         context, matches = get_relevant_context(user_query, top_k=3)
+        print(len(matches))
         if not context:
             return jsonify({"response": "No relevant context found."}), 200
 
@@ -235,7 +236,9 @@ def handle_query():
         # messages.append({"role": "assistant", "text": response_text})
         # return response_text
         html_response = markdown.markdown(response_text, extensions=["nl2br"])
-        html_response=html_response.replace("\n","")
+        html_response = html_response.replace("\n", "")
+        html_response = html_response.replace('<strong>Source:</strong>', "Source:")
+        html_response = html_response.replace('Source:', "<strong><br>Source:</strong>")
 
         return jsonify({
             "response": html_response,
