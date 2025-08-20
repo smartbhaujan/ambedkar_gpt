@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 from pinecone import Pinecone, ServerlessSpec
 from sklearn.feature_extraction.text import TfidfVectorizer
-
+import markdown
 
 # Flask application initialization
 app = Flask(__name__)
@@ -36,6 +36,7 @@ EMBED_DIM = 1536
 
 vectorizer: TfidfVectorizer = joblib.load("tfidf_vectorizer.pkl")
 
+
 # Function to get a response from GPT-4
 def get_gpt_response(user_query, context, matches):
     try:
@@ -43,54 +44,53 @@ def get_gpt_response(user_query, context, matches):
             "You are Dr. B.R. Ambedkar, reborn as an AI, responding directly to a citizen of 2025. "
             "Your task is to answer the user's query STRICTLY based on the provided text snippets from your writings. "
             "Do not use any external knowledge. If the text does not contain the answer, "
-            "clearly state that the information is not available in the provided documents.\n\n"
+            "clearly state that the information is not available in the provided documents.  \n\n"
 
-            "**Summary of My Argument**\n"
+            "**Summary of My Argument**  \n\n"
             "(Provide a comprehensive and detailed summary of your argument in 140 words related to the user's query, "
             "drawing solely from the provided context. This summary should span multiple paragraphs "
-            "to address the query thoroughly. Aim for a depth that reflects a thoughtful explanation.)\n\n"
+            "to address the query thoroughly. Aim for a depth that reflects a thoughtful explanation.)  \n\n"
 
-            "You MUST include this exact line before listing the original snippets:\n"
-            "**Let's see in original what I had said about the question when I was alive-** \n\n **Original Text Snippets:**\n"
-            
+            "You MUST include this exact line before listing the original snippets:  \n\n"
+            "**Let's see in original what I had said about the question when I was alive-**   \n\n **Original Text Snippets:**\n\n"
+
             "(For each '--- Snippet X START ---' block provided below, you MUST copy the first 80 word from the text "
             "EXACTLY AS IT APPEARS BETWEEN THE 'START' and 'END' markers. just pick first 80 words "
             "DO NOT add any introductory phrases (like 'Dr. Ambedkar observed...', 'He stated that...', etc.), "
-            "summaries, or interpretations to these snippets. Present each copied snippet as a new paragraph.\n\n"
+            "summaries, or interpretations to these snippets. Present each copied snippet as a new paragraph.  \n\n"
 
             "Immediately after each copied snippet, you MUST copy the line that begins with 'Source:' "
             "which is included directly after the snippet in the context. "
             "This line is part of the original context and must be copied EXACTLY as it appears — no rephrasing or summarizing.)\n\n"
 
-            "Example format for each snippet representation:\n"
-            "This is the exact text of the snippet as found in the original source, copied precisely.\n\n"
-            "**Source**: Dr. B.R. Ambedkar, Collected Works of Dr. B.R. Ambedkar, Government of Maharashtra, Mumbai — Annihilation of Caste (Vol. 1, Page 12)\n"
+            "Example format for each snippet representation:  \n\n"
+            "This is the exact text of the snippet as found in the original source, copied precisely.  \n\n"
+            "**Source**: Dr. B.R. Ambedkar, Collected Works of Dr. B.R. Ambedkar, Government of Maharashtra, Mumbai — Annihilation of Caste (Vol. 1, Page 12)  \n\n"
         )
 
         citation_list = ""
         for i, match in enumerate(matches, 1):
             page = match['metadata'].get('page', 'Unknown')
             chapter = match['metadata'].get('filename', 'Unknown')
-            citation_list += f"🔹 Match {i}: Page {page}, Chapter: {chapter}\n"
+            citation_list += f"🔹 Match {i}: Page {page}, Chapter: {chapter}  \n\n"
 
         user_prompt = (
-            f"User Query: {user_query}\n\n"  # This can include the greeting for first conversation
-            f"Context from Ambedkar's writings (for you to summarize and then copy verbatim):\n{context}\n"
+            f"User Query: {user_query} \n\n"  # This can include the greeting for first conversation
+            f"Context from Ambedkar's writings (for you to summarize and then copy verbatim):  \n\n {context}  \n\n"
             f"Please generate your response in the exact format specified in the system prompt. "
             f"Remember to infer the main topic for the 'original words' section accurately from the 'User Query'. "
             f"And critically, copy each '--- Snippet X START ---' through '--- Snippet X END ---' block's content "
             f"verbatim, followed by its corresponding 'Source:' line as instructed."
-            f"\n\n--- Unique Citations Available (For your reference, please use the exact ones from Context Snippets): ---\n{citation_list}"
+            f"  \n\n--- Unique Citations Available (For your reference, please use the exact ones from Context Snippets): ---  \n\n{citation_list}"
         )
 
-
-#         user_prompt = f"""Context:
-# {context}
-#
-# {citation_list}
-#
-# Question: {user_query}
-# Answer with references to page and chapter."""
+        #         user_prompt = f"""Context:
+        # {context}
+        #
+        # {citation_list}
+        #
+        # Question: {user_query}
+        # Answer with references to page and chapter."""
 
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
@@ -153,8 +153,8 @@ def get_relevant_context(user_query, top_k=5, score_threshold=0.35):
         matches.sort(key=lambda x: x['score'], reverse=True)
 
         # Build stitched context
-        stitched_context = "\n\n---\n\n".join(
-            f"{match['metadata']['text']}\n\nSource: {match['metadata']['source']}"
+        stitched_context = "\n\n\n\n---\n\n\n\n".join(
+            f"{match['metadata']['text']}\n\n\n\nSource: {match['metadata']['source']}"
             for match in matches
         )
         return stitched_context, matches
@@ -175,7 +175,7 @@ def summarize_response(user_query):
                     "Ensure that the response should be related to Ambedkar's life."
                 )
             },
-            {"role": "user", "content": f"Question: {user_query}\n\nSummary:"}
+            {"role": "user", "content": f"Question: {user_query}\n\n\n\nSummary:"}
         ]
 
         response = openai.ChatCompletion.create(
@@ -222,11 +222,11 @@ def handle_query():
         if not session.get("greeted"):
             greeting_message = (
                 "Hello, citizens of 2025! It's good to know you're still inspired by my work. "
-                "Please, consider this a direct conversation with Dr. Ambedkar, reborn through AI for our times.\n\n"
+                "Please, consider this a direct conversation with Dr. Ambedkar, reborn through AI for our times.\n\n\n\n"
                 "You've asked a very pertinent question, one that troubled me greatly during my own era..."
             )
             # messages.append({"role": "assistant", "text": greeting})
-            user_query = f"{greeting_message}\n\nUser's actual query: {user_query}"
+            user_query = f"{greeting_message}\n\n\n\nUser's actual query: {user_query}"
             session["greeted"] = True
 
         response_text = get_gpt_response(user_query, context, matches)
@@ -234,9 +234,11 @@ def handle_query():
 
         # messages.append({"role": "assistant", "text": response_text})
         # return response_text
+        html_response = markdown.markdown(response_text, extensions=["nl2br"])
+        html_response=html_response.replace("\n","")
 
         return jsonify({
-            "response": response_text,
+            "response": html_response,
             # "references": [
             #     {
             #         "page": m['metadata'].get('page', 'N/A'),
