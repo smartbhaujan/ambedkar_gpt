@@ -46,15 +46,15 @@ def get_gpt_response(user_query, context, matches):
             "clearly state that the information is not available in the provided documents.\n\n"
 
             "**Summary of My Argument**\n"
-            "(Provide a comprehensive and detailed summary of your argument in 200 words related to the user's query, "
+            "(Provide a comprehensive and detailed summary of your argument in 140 words related to the user's query, "
             "drawing solely from the provided context. This summary should span multiple paragraphs "
             "to address the query thoroughly. Aim for a depth that reflects a thoughtful explanation.)\n\n"
 
             "You MUST include this exact line before listing the original snippets:\n"
             "**Let's see in original what I had said about the question when I was alive-** \n\n **Original Text Snippets:**\n"
             
-            "(For each '--- Snippet X START ---' block provided below, you MUST copy the first 100 word from the text "
-            "EXACTLY AS IT APPEARS BETWEEN THE 'START' and 'END' markers. just pick first 100 words "
+            "(For each '--- Snippet X START ---' block provided below, you MUST copy the first 80 word from the text "
+            "EXACTLY AS IT APPEARS BETWEEN THE 'START' and 'END' markers. just pick first 80 words "
             "DO NOT add any introductory phrases (like 'Dr. Ambedkar observed...', 'He stated that...', etc.), "
             "summaries, or interpretations to these snippets. Present each copied snippet as a new paragraph.\n\n"
 
@@ -99,7 +99,7 @@ def get_gpt_response(user_query, context, matches):
                 {"role": "user", "content": user_prompt}
             ],
             temperature=0.3,
-            max_tokens=900,
+            max_tokens=1500,
             top_p=0.9,
             frequency_penalty=0,
             presence_penalty=0,
